@@ -55,9 +55,13 @@ export default function ProductDetailPage() {
   const fetchProduct = async (id: string) => {
     try {
       const response = await fetch(`/api/products/${id}`)
-      const data = await response.json()
-      setProduct(data)
-      fetchRelatedProducts(data.category, id)
+      if (response.ok) {
+        const data = await response.json()
+        setProduct(data)
+        if (data.category) {
+          fetchRelatedProducts(data.category, id)
+        }
+      }
       setLoading(false)
     } catch (error) {
       console.error('Error fetching product:', error)
@@ -68,8 +72,10 @@ export default function ProductDetailPage() {
   const fetchReviews = async (productId: string) => {
     try {
       const response = await fetch(`/api/products/${productId}/reviews`)
-      const data = await response.json()
-      setReviews(data)
+      if (response.ok) {
+        const data = await response.json()
+        setReviews(Array.isArray(data) ? data : [])
+      }
     } catch (error) {
       console.error('Error fetching reviews:', error)
     }
@@ -78,8 +84,12 @@ export default function ProductDetailPage() {
   const fetchRelatedProducts = async (category: string, excludeId: string) => {
     try {
       const response = await fetch(`/api/products?category=${category}`)
-      const data = await response.json()
-      setRelatedProducts(data.filter((p: Product) => p.id !== excludeId).slice(0, 4))
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data)) {
+          setRelatedProducts(data.filter((p: Product) => p.id !== excludeId).slice(0, 4))
+        }
+      }
     } catch (error) {
       console.error('Error fetching related products:', error)
     }
@@ -166,17 +176,20 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-mesh-gradient">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl md:text-2xl font-bold text-accent">
+            <Link href="/" className="text-2xl font-black tracking-tighter text-accent flex items-center gap-2">
+              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                <div className="w-4 h-4 bg-background rounded-sm"></div>
+              </div>
               DINOXE
             </Link>
-            <Link href="/cart" className="text-text hover:text-accent transition-colors flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5" />
-              <span className="hidden md:inline">Cart</span>
+            <Link href="/cart" className="relative p-2 text-gray-400 hover:text-accent transition-colors">
+              <ShoppingCart className="w-6 h-6" />
+              {/* No count here to keep it clean, but I could add it */}
             </Link>
           </div>
         </div>
@@ -184,84 +197,87 @@ export default function ProductDetailPage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-          <Link href="/" className="hover:text-accent">Home</Link>
-          <span>/</span>
-          <Link href="/products" className="hover:text-accent">Products</Link>
-          <span>/</span>
-          <span className="text-text">{product.name}</span>
+        <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-500 mb-8">
+          <Link href="/" className="hover:text-accent transition-colors">Home</Link>
+          <div className="w-1 h-1 rounded-full bg-white/20"></div>
+          <Link href="/products" className="hover:text-accent transition-colors">Products</Link>
+          <div className="w-1 h-1 rounded-full bg-white/20"></div>
+          <span className="text-accent truncate">{product.name}</span>
         </div>
 
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-400 hover:text-accent mb-6 transition-colors"
+          className="group flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white mb-8 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          GO BACK
         </button>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-2 gap-12 mb-20">
           {/* Product Image */}
-          <div className="space-y-4">
-            <div className="aspect-square bg-gray-900 border border-gray-800 rounded-lg flex items-center justify-center">
-              <ShoppingCart className="w-32 h-32 text-gray-700" />
+          <div className="space-y-6">
+            <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 border border-white/5 rounded-[40px] flex items-center justify-center relative overflow-hidden group">
+              <ShoppingCart className="w-32 h-32 text-gray-700 group-hover:scale-110 transition-transform duration-700 opacity-20" />
+              <div className="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="aspect-square bg-gray-900 border border-gray-800 rounded-lg flex items-center justify-center cursor-pointer hover:border-accent transition-colors"
+                  className="aspect-square bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center cursor-pointer hover:border-accent/50 transition-all hover:bg-accent/5"
                 >
-                  <ShoppingCart className="w-8 h-8 text-gray-700" />
+                  <ShoppingCart className="w-6 h-6 text-gray-700" />
                 </div>
               ))}
             </div>
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <div className="text-sm text-accent mb-2">{product.category}</div>
-              <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center gap-1">
-                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{product.rating}</span>
+          <div className="flex flex-col justify-center">
+            <div className="mb-8">
+              <div className="inline-block px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[10px] font-black uppercase tracking-widest mb-4">
+                {product.category}
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight">{product.name}</h1>
+              <div className="flex items-center gap-6 mb-8">
+                <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-black text-sm">{product.rating}</span>
                 </div>
-                <div className="text-gray-400">|</div>
-                <div className={product.stock > 0 ? 'text-success' : 'text-error'}>
-                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                <div className={`text-xs font-bold uppercase tracking-widest ${product.stock > 0 ? 'text-success' : 'text-error'}`}>
+                  {product.stock > 0 ? `In Stock (${product.stock})` : 'Sold Out'}
                 </div>
               </div>
-              <div className="font-mono text-3xl font-bold text-accent mb-4">
+              <div className="font-mono text-4xl font-black text-accent mb-8">
                 {formatPrice(product.price)}
               </div>
-              <p className="text-gray-300 leading-relaxed">{product.description}</p>
+              <p className="text-gray-400 leading-relaxed text-lg">{product.description}</p>
             </div>
 
-            {/* Specifications */}
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <h3 className="font-semibold mb-3">Specifications</h3>
-              <p className="text-gray-300">{product.specifications}</p>
-              <div className="flex items-center gap-2 mt-3 text-sm">
-                <Zap className="w-4 h-4 text-accent" />
-                <span className="text-accent">{product.warranty} warranty</span>
+            {/* Specifications Card */}
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 mb-8 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl group-hover:bg-accent/10 transition-colors"></div>
+              <h3 className="font-bold text-sm uppercase tracking-widest text-white mb-4">Tech Specs</h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">{product.specifications}</p>
+              <div className="flex items-center gap-3 text-accent bg-accent/10 w-fit px-4 py-2 rounded-full border border-accent/20">
+                <Zap className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{product.warranty} Warranty</span>
               </div>
             </div>
 
-            {/* Quantity and Add to Cart */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border border-gray-700 rounded-lg">
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row items-stretch gap-4 mb-8">
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-2 hover:bg-gray-800 transition-colors"
+                  className="px-6 py-4 hover:bg-white/10 transition-colors font-black text-xl"
                 >
                   -
                 </button>
-                <span className="px-4 py-2 font-medium">{quantity}</span>
+                <span className="px-6 py-4 font-black text-lg min-w-[60px] text-center">{quantity}</span>
                 <button
                   onClick={() => setQuantity(Math.min(5, quantity + 1))}
-                  className="px-4 py-2 hover:bg-gray-800 transition-colors"
+                  className="px-6 py-4 hover:bg-white/10 transition-colors font-black text-xl"
                 >
                   +
                 </button>
@@ -269,155 +285,150 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className={`flex-1 py-3 rounded-lg font-medium transition-all ${
-                  product.stock > 0
-                    ? 'bg-accent hover:bg-accent-hover text-white'
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
+                className="flex-1 btn-primary text-lg flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(0,217,217,0.2)]"
               >
-                {product.stock > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
+                <ShoppingCart className="w-5 h-5" />
+                {product.stock > 0 ? 'ADD TO BAG' : 'NOT AVAILABLE'}
               </button>
             </div>
 
-            {/* Why Buy */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
+            {/* Trust Badges */}
+            <div className="grid grid-cols-3 gap-4 pt-8 border-t border-white/5">
+              <div className="flex flex-col items-center gap-2 text-center">
                 <Shield className="w-5 h-5 text-success" />
-                <span>100% Authentic Products</span>
+                <span className="text-[9px] font-black uppercase tracking-tighter text-gray-500">Genuine</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex flex-col items-center gap-2 text-center">
                 <RefreshCw className="w-5 h-5 text-success" />
-                <span>30-Day Easy Refund</span>
+                <span className="text-[9px] font-black uppercase tracking-tighter text-gray-500">30-Day Refund</span>
               </div>
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex flex-col items-center gap-2 text-center">
                 <Zap className="w-5 h-5 text-success" />
-                <span>{product.warranty} Warranty</span>
+                <span className="text-[9px] font-black uppercase tracking-tighter text-gray-500">Warranty</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Reviews Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-          
-          {/* Review Form */}
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-            <h3 className="font-semibold mb-4">Write a Review</h3>
-            <form onSubmit={handleReviewSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Name</label>
-                  <input
-                    type="text"
-                    value={reviewName}
-                    onChange={(e) => setReviewName(e.target.value)}
-                    className="input-field"
-                    placeholder="Your name"
-                  />
-                  {reviewErrors.name && (
-                    <p className="text-error text-sm mt-1">{reviewErrors.name}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">City</label>
-                  <input
-                    type="text"
-                    value={reviewCity}
-                    onChange={(e) => setReviewCity(e.target.value)}
-                    className="input-field"
-                    placeholder="Your city"
-                  />
-                  {reviewErrors.city && (
-                    <p className="text-error text-sm mt-1">{reviewErrors.city}</p>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Rating</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setReviewRating(star)}
-                      className={`text-2xl transition-colors ${
-                        star <= reviewRating ? 'text-yellow-400' : 'text-gray-600'
-                      }`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Your Review</label>
-                <textarea
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  className="input-field min-h-[100px]"
-                  placeholder="Share your experience with this product..."
-                  rows={4}
-                />
-                {reviewErrors.comment && (
-                  <p className="text-error text-sm mt-1">{reviewErrors.comment}</p>
-                )}
-              </div>
-              <button type="submit" className="btn-primary">
-                Submit Review
-              </button>
-            </form>
+        {/* Review Form & List - Modernized */}
+        <div className="mb-24">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <h2 className="text-4xl font-black mb-2">Community Reviews</h2>
+              <p className="text-gray-400 text-sm">Real feedback from real tech enthusiasts.</p>
+            </div>
           </div>
-
-          {/* Reviews List */}
-          <div className="space-y-4">
-            {reviews.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No reviews yet. Be the first to review!</p>
-            ) : (
-              reviews.slice(0, 5).map((review) => (
-                <div key={review.id} className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="font-medium">{review.customerName}</div>
-                      <div className="text-sm text-gray-400">{review.city}</div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+          
+          <div className="grid lg:grid-cols-3 gap-12">
+            {/* Form */}
+            <div className="lg:col-span-1">
+              <div className="bg-white/5 border border-white/10 rounded-[32px] p-8 sticky top-24">
+                <h3 className="text-xl font-black mb-6">Write a Review</h3>
+                <form onSubmit={handleReviewSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={reviewName}
+                      onChange={(e) => setReviewName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+                      placeholder="Your name"
+                    />
+                    {reviewErrors.name && <p className="text-error text-[10px] mt-1 font-bold">{reviewErrors.name}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">City</label>
+                    <input
+                      type="text"
+                      value={reviewCity}
+                      onChange={(e) => setReviewCity(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+                      placeholder="Your city"
+                    />
+                    {reviewErrors.city && <p className="text-error text-[10px] mt-1 font-bold">{reviewErrors.city}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Rating</label>
+                    <div className="flex gap-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className={`text-2xl transition-all ${
+                            star <= reviewRating ? 'text-yellow-400 scale-110' : 'text-gray-700 grayscale'
+                          }`}
+                        >
+                          ★
+                        </button>
                       ))}
                     </div>
                   </div>
-                  <p className="text-gray-300">{review.comment}</p>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Comment</label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all min-h-[120px]"
+                      placeholder="What's your experience?"
+                    />
+                    {reviewErrors.comment && <p className="text-error text-[10px] mt-1 font-bold">{reviewErrors.comment}</p>}
+                  </div>
+                  <button type="submit" className="w-full btn-primary py-4">SUBMIT REVIEW</button>
+                </form>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="lg:col-span-2 space-y-6">
+              {reviews.length === 0 ? (
+                <div className="text-center py-20 bg-white/5 border border-white/10 rounded-[32px]">
+                  <p className="text-gray-500 font-bold italic">No reviews yet. Be the first to share your experience!</p>
                 </div>
-              ))
-            )}
+              ) : (
+                reviews.slice(0, 5).map((review) => (
+                  <div key={review.id} className="bg-white/5 border border-white/10 rounded-[32px] p-8 hover:bg-white/[0.07] transition-colors">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <div className="font-black text-lg">{review.customerName}</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">{review.city}</div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
+                        {[...Array(review.rating)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-gray-400 leading-relaxed italic">"{review.comment}"</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Related Products */}
+        {/* Related Products - Modernized */}
         {relatedProducts.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="pb-20">
+            <h2 className="text-3xl font-black mb-12">Complete The Look</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {relatedProducts.map((related) => (
                 <Link
                   key={related.id}
                   href={`/product/${related.id}`}
-                  className="card group"
+                  className="group"
                 >
-                  <div className="aspect-square bg-gray-800 flex items-center justify-center text-gray-600">
-                    <ShoppingCart className="w-12 h-12" />
+                  <div className="aspect-square bg-white/5 border border-white/10 rounded-[32px] flex items-center justify-center mb-4 relative overflow-hidden group-hover:border-accent/30 transition-all duration-500">
+                    <ShoppingCart className="w-12 h-12 text-gray-700 group-hover:scale-110 transition-transform duration-700 opacity-30" />
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-medium mb-2 group-hover:text-accent transition-colors line-clamp-2">
-                      {related.name}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <div className="font-mono font-bold">{formatPrice(related.price)}</div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        {related.rating}
-                      </div>
+                  <h3 className="font-bold text-sm mb-2 group-hover:text-accent transition-colors line-clamp-1">
+                    {related.name}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div className="font-mono font-black text-white">{formatPrice(related.price)}</div>
+                    <div className="flex items-center gap-1 text-[10px] font-black bg-white/5 px-2 py-0.5 rounded-lg">
+                      <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                      {related.rating}
                     </div>
                   </div>
                 </Link>
@@ -429,10 +440,12 @@ export default function ProductDetailPage() {
 
       {/* Toast */}
       {showToast && (
-        <div className="toast bg-success text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
-          <span className="text-xl font-bold">✓</span>
-          <span className="font-medium">
-            {reviewName ? 'Review submitted successfully!' : 'Added to cart'}
+        <div className="fixed bottom-8 right-8 bg-accent text-background px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up z-50">
+          <div className="w-6 h-6 bg-background rounded-full flex items-center justify-center">
+            <Check className="w-4 h-4 text-accent" />
+          </div>
+          <span className="font-black text-sm tracking-tight uppercase">
+            {reviewName ? 'Review Received' : 'Added to Bag'}
           </span>
         </div>
       )}

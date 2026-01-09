@@ -112,98 +112,102 @@ export default function OrderTrackingPage() {
   const isRefund = order.orderStatus === 'Refund Pending' || order.orderStatus === 'Refunded'
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-mesh-gradient pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl md:text-2xl font-bold text-accent">
+            <Link href="/" className="text-2xl font-black tracking-tighter text-accent flex items-center gap-2">
+              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                <div className="w-4 h-4 bg-background rounded-sm"></div>
+              </div>
               DINOXE
             </Link>
-            <Link href="/products" className="text-text hover:text-accent transition-colors">
-              Products
+            <Link href="/products" className="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-accent transition-colors">
+              Continue Shopping
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-400 hover:text-accent mb-6 transition-colors"
+          className="group flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white mb-8 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Back
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          GO BACK
         </button>
 
         {/* Order ID */}
-        <div className="card p-6 mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 flex flex-col justify-center relative overflow-hidden group mb-12">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl group-hover:bg-accent/10 transition-colors"></div>
+          <div className="flex items-center justify-between flex-wrap gap-6 relative z-10">
             <div>
-              <div className="text-sm text-gray-400 mb-1">Tracking Order</div>
-              <div className="font-mono text-2xl font-bold">{order.orderId}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Tracking Your Journey</div>
+              <div className="font-mono text-3xl font-black text-white tracking-tighter">{order.orderId}</div>
             </div>
             <button
               onClick={copyOrderId}
-              className="btn-secondary flex items-center gap-2"
+              className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95"
             >
               <Copy className="w-4 h-4" />
-              {copied ? 'Copied!' : 'Copy ID'}
+              {copied ? 'Copied!' : 'Copy Tracking ID'}
             </button>
           </div>
         </div>
 
         {/* Order Status */}
         {isRefund ? (
-          <div className="card p-6 mb-8 border-warning">
-            <h2 className="text-xl font-bold mb-2 text-warning">Refund Status</h2>
-            <p className="text-gray-300">
-              Your refund is currently <span className="font-semibold text-warning">{order.orderStatus}</span>.
-              Our team will process it within 2-3 business days.
+          <div className="bg-warning/5 border border-warning/20 rounded-[40px] p-10 mb-12">
+            <h2 className="text-2xl font-black mb-4 text-warning uppercase tracking-tight">Refund Processed</h2>
+            <p className="text-gray-400 font-medium leading-relaxed">
+              Your refund is currently <span className="text-warning font-black uppercase tracking-widest px-2 py-1 bg-warning/10 rounded-lg ml-1">{order.orderStatus}</span>.
+              Funds will be returned to your original payment method within 3-5 business days.
             </p>
           </div>
         ) : (
-          <div className="card p-6 mb-8">
-            <h2 className="text-xl font-bold mb-6">Order Status</h2>
-            <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-[40px] p-10 mb-12">
+            <h2 className="text-xl font-black mb-12 uppercase tracking-widest text-white/50">Live Status</h2>
+            <div className="space-y-12">
               {statusSteps.map((step, index) => {
                 const isActive = index <= currentStep
                 const isCurrent = index === currentStep
                 const Icon = step.icon
 
                 return (
-                  <div key={step.key} className="flex gap-4">
-                    <div className="flex flex-col items-center">
+                  <div key={step.key} className="relative flex gap-8 group">
+                    <div className="relative flex flex-col items-center">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isActive ? 'bg-success' : 'bg-gray-700'
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center relative z-10 transition-all duration-500 ${
+                          isActive ? 'bg-accent text-background shadow-[0_0_20px_rgba(0,217,217,0.3)]' : 'bg-white/5 text-gray-600'
                         }`}
                       >
-                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                        <Icon className="w-6 h-6" />
                       </div>
                       {index < statusSteps.length - 1 && (
                         <div
-                          className={`w-0.5 h-12 mt-2 ${
-                            index < currentStep ? 'bg-success' : 'bg-gray-700'
+                          className={`w-0.5 h-16 mt-4 rounded-full ${
+                            index < currentStep ? 'bg-accent' : 'bg-white/5'
                           }`}
                         />
                       )}
                     </div>
-                    <div className="flex-1 pt-2">
+                    <div className="pt-2">
                       <div
-                        className={`font-medium ${
-                          isCurrent ? 'text-accent' : isActive ? 'text-text' : 'text-gray-500'
+                        className={`text-sm font-black uppercase tracking-widest ${
+                          isCurrent ? 'text-accent' : isActive ? 'text-white' : 'text-gray-600'
                         }`}
                       >
                         {step.label}
-                        {isCurrent && <span className="ml-2 text-xs bg-accent/20 px-2 py-1 rounded">Current</span>}
+                        {isCurrent && <span className="ml-3 text-[10px] bg-accent/20 px-2 py-1 rounded-lg">LATEST UPDATE</span>}
                       </div>
-                      <div className={`text-sm mt-1 ${isActive ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <div className={`text-sm mt-1 font-medium ${isActive ? 'text-gray-400' : 'text-gray-600'}`}>
                         {step.description}
                       </div>
-                      {index === 0 && (
-                        <div className="text-xs text-gray-500 mt-1">
+                      {isActive && index === 0 && (
+                        <div className="text-[10px] text-gray-500 font-black mt-2 uppercase tracking-widest">
                           {formatDateTime(new Date(order.createdAt))}
                         </div>
                       )}
@@ -216,94 +220,85 @@ export default function OrderTrackingPage() {
         )}
 
         {/* Order Details */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-5 gap-8 mb-12">
           {/* Items */}
-          <div className="card p-6">
-            <h3 className="font-semibold mb-4">Order Items</h3>
-            <div className="space-y-3">
+          <div className="md:col-span-3 bg-white/5 border border-white/10 rounded-[40px] p-10">
+            <h3 className="text-xl font-black mb-8 uppercase tracking-widest text-white/50">Package Contents</h3>
+            <div className="space-y-6">
               {order.items.map((item, index) => (
-                <div key={index} className="flex justify-between text-sm pb-3 border-b border-gray-800 last:border-0 last:pb-0">
+                <div key={index} className="flex justify-between items-center pb-6 border-b border-white/5 last:border-0 last:pb-0">
                   <div>
-                    <div className="font-medium">{item.productName}</div>
-                    <div className="text-gray-400">Qty: {item.quantity}</div>
+                    <div className="font-bold text-white mb-1">{item.productName}</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 text-xs">Qty: {item.quantity}</div>
                   </div>
-                  <div className="font-mono">{formatPrice(item.subtotal)}</div>
+                  <div className="font-mono font-black text-white">{formatPrice(item.subtotal)}</div>
                 </div>
               ))}
             </div>
-            <div className="border-t border-gray-700 mt-4 pt-4">
-              <div className="flex justify-between font-bold">
-                <span>Total</span>
-                <span className="font-mono text-accent">{formatPrice(order.totalAmount)}</span>
+            <div className="border-t border-white/10 mt-8 pt-8">
+              <div className="flex justify-between items-center">
+                <span className="text-white font-black uppercase tracking-widest">Total Amount</span>
+                <span className="font-mono text-2xl font-black text-accent">{formatPrice(order.totalAmount)}</span>
               </div>
             </div>
           </div>
 
           {/* Delivery Info */}
-          <div className="card p-6">
-            <h3 className="font-semibold mb-4">Delivery Information</h3>
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="text-gray-400">Name:</span>
-                <span className="ml-2">{order.customerName}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">Phone:</span>
-                <span className="ml-2">+91 {order.customerPhone}</span>
-              </div>
-              {order.customerEmail && (
+          <div className="md:col-span-2 space-y-8">
+            <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl"></div>
+              <h3 className="text-xl font-black mb-8 uppercase tracking-widest text-white/50">Delivery To</h3>
+              <div className="space-y-6">
                 <div>
-                  <span className="text-gray-400">Email:</span>
-                  <span className="ml-2">{order.customerEmail}</span>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Customer</div>
+                  <div className="font-bold text-white">{order.customerName}</div>
+                  <div className="text-sm font-mono text-gray-400">+91 {order.customerPhone}</div>
                 </div>
-              )}
-              <div>
-                <span className="text-gray-400">Address:</span>
-                <span className="ml-2 block mt-1">{order.deliveryAddress}</span>
-              </div>
-              {order.deliveryInstructions && (
                 <div>
-                  <span className="text-gray-400">Instructions:</span>
-                  <span className="ml-2">{order.deliveryInstructions}</span>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Address</div>
+                  <div className="text-sm text-gray-300 leading-relaxed font-medium">
+                    {order.deliveryAddress}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
-            <div className="border-t border-gray-700 mt-4 pt-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Payment:</span>
-                <span>{order.paymentMethod} ({order.paymentStatus})</span>
-              </div>
-              <div className="flex justify-between text-sm mt-2">
-                <span className="text-gray-400">Order Date:</span>
-                <span>{formatDate(new Date(order.createdAt))}</span>
-              </div>
-              <div className="flex justify-between text-sm mt-2">
-                <span className="text-gray-400">Last Updated:</span>
-                <span>{formatDateTime(new Date(order.updatedAt))}</span>
+
+            <div className="bg-white/5 border border-white/10 rounded-[40px] p-8">
+              <h3 className="text-sm font-black mb-4 uppercase tracking-widest text-white/50">Payment Info</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-gray-500">Method</span>
+                  <span className="text-white">{order.paymentMethod}</span>
+                </div>
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-gray-500">Status</span>
+                  <span className="text-success">{order.paymentStatus}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Support */}
-        <div className="card p-6 bg-gray-900">
-          <h3 className="font-semibold mb-4">Need Help with Your Order?</h3>
-          <p className="text-gray-400 text-sm mb-4">
-            If you have any questions or issues with your order, feel free to reach out to our support team.
+        <div className="bg-accent/5 border border-accent/20 rounded-[40px] p-10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 blur-3xl -z-10 group-hover:bg-accent/20 transition-colors"></div>
+          <h3 className="text-2xl font-black mb-4 tracking-tight">Need Assistance?</h3>
+          <p className="text-gray-400 font-medium mb-8 max-w-lg">
+            Our support heroes are available 24/7 to help you with any questions regarding your delivery or product.
           </p>
           <div className="flex flex-wrap gap-4">
             <a
               href={`https://wa.me/919876543210?text=Hi, I have a question about my order ${order.orderId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary flex items-center gap-2"
+              className="bg-[#25D366] text-white flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-transform shadow-[0_0_20px_rgba(37,211,102,0.3)]"
             >
               <MessageCircle className="w-5 h-5" />
-              Chat on WhatsApp
+              WhatsApp Support
             </a>
             <a
               href="mailto:support@dinoxe.com"
-              className="btn-secondary"
+              className="btn-secondary px-8 py-4 text-[10px] font-black uppercase tracking-widest"
             >
               Email Support
             </a>

@@ -61,7 +61,7 @@ export default function AdminProductsPage() {
       const response = await fetch('/api/admin/products')
       if (response.ok) {
         const data = await response.json()
-        setProducts(data)
+        setProducts(Array.isArray(data) ? data : [])
       }
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -459,7 +459,7 @@ function ProductEditModal({
               <input
                 type="number"
                 value={formData.price || 0}
-                onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
                 className="input-field"
                 required
               />
@@ -471,7 +471,7 @@ function ProductEditModal({
               <input
                 type="number"
                 value={formData.stock || 0}
-                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                 className="input-field"
                 required
               />
@@ -484,7 +484,7 @@ function ProductEditModal({
                 min="1"
                 max="5"
                 value={formData.rating || 4.5}
-                onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 })}
                 className="input-field"
                 required
               />
