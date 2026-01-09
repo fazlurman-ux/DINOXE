@@ -66,8 +66,10 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       const response = await fetch('/api/products')
-      const data = await response.json()
-      setProducts(data)
+      if (response.ok) {
+        const data = await response.json()
+        setProducts(Array.isArray(data) ? data : [])
+      }
       setLoading(false)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -146,39 +148,41 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-mesh-gradient">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
-            <Link href="/" className="text-xl md:text-2xl font-bold text-accent shrink-0">
-              DINOXE
+            <Link href="/" className="text-2xl font-black tracking-tighter text-accent flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                <div className="w-4 h-4 bg-background rounded-sm"></div>
+              </div>
+              <span className="hidden sm:inline">DINOXE</span>
             </Link>
             <div className="flex-1 max-w-xl">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-accent transition-colors" />
                 <input
                   type="text"
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-field pl-10"
+                  className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/50 transition-all"
                 />
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/cart" className="text-text hover:text-accent transition-colors flex items-center gap-2 shrink-0">
-                <ShoppingCart className="w-5 h-5" />
-                <span className="hidden md:inline">Cart</span>
+              <Link href="/cart" className="relative p-2 text-gray-400 hover:text-accent transition-colors shrink-0">
+                <ShoppingCart className="w-6 h-6" />
                 {getCartCount() > 0 && (
-                  <span className="bg-accent text-white text-xs px-2 py-1 rounded-full">
+                  <span className="absolute -top-1 -right-1 bg-accent text-background text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-background">
                     {getCartCount()}
                   </span>
                 )}
               </Link>
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden text-text"
+                className="md:hidden p-2 text-gray-400 hover:text-accent transition-colors"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -192,91 +196,96 @@ export default function ProductsPage() {
           {/* Sidebar */}
           <aside
             className={`${
-              sidebarOpen ? 'block' : 'hidden'
-            } md:block w-64 shrink-0 space-y-6`}
+              sidebarOpen ? 'fixed inset-0 z-[60] bg-background/95 p-6 overflow-y-auto' : 'hidden'
+            } md:relative md:block md:bg-transparent md:p-0 w-64 shrink-0 space-y-6`}
           >
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  Filters
-                </h2>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-accent hover:underline"
+            <div className="flex items-center justify-between md:hidden mb-8">
+              <h2 className="text-2xl font-bold">Filters</h2>
+              <button onClick={() => setSidebarOpen(false)}>
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-8 sticky top-24">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-accent" />
+                    Filters
+                  </h3>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-xs text-accent hover:underline font-bold"
+                    >
+                      RESET
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Filter */}
+                <div className="mb-8">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Category</h4>
+                  <div className="space-y-3">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                          selectedCategory === category
+                            ? 'bg-accent text-background font-bold'
+                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Filter */}
+                <div className="mb-8">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Price Range</h4>
+                  <div className="space-y-2">
+                    {priceRanges.map((range) => (
+                      <label
+                        key={range.label}
+                        className="flex items-center gap-3 cursor-pointer group"
+                      >
+                        <input
+                          type="radio"
+                          name="price"
+                          checked={
+                            selectedPrice?.min === range.min &&
+                            selectedPrice?.max === range.max
+                          }
+                          onChange={() => setSelectedPrice(range)}
+                          className="w-4 h-4 accent-accent bg-transparent border-white/20"
+                        />
+                        <span className={`text-sm transition-colors ${
+                          selectedPrice?.min === range.min ? 'text-white font-bold' : 'text-gray-400 group-hover:text-gray-200'
+                        }`}>
+                          {range.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sort */}
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-4">Sort By</h4>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-accent"
                   >
-                    Clear All
-                  </button>
-                )}
-              </div>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <h3 className="font-medium mb-3">Category</h3>
-                <div className="space-y-2">
-                  {categories.map((category) => (
-                    <label
-                      key={category}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="category"
-                        checked={selectedCategory === category}
-                        onChange={() => setSelectedCategory(category)}
-                        className="w-4 h-4 accent-accent"
-                      />
-                      <span className="text-sm">{category}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Filter */}
-              <div className="mb-6">
-                <h3 className="font-medium mb-3">Price Range</h3>
-                <div className="space-y-2">
-                  {priceRanges.map((range) => (
-                    <label
-                      key={range.label}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="price"
-                        checked={
-                          selectedPrice?.min === range.min &&
-                          selectedPrice?.max === range.max
-                        }
-                        onChange={() => setSelectedPrice(range)}
-                        className="w-4 h-4 accent-accent"
-                      />
-                      <span className="text-sm">{range.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sort */}
-              <div>
-                <h3 className="font-medium mb-3">Sort By</h3>
-                <div className="space-y-2">
-                  {sortOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="sort"
-                        checked={sortBy === option.value}
-                        onChange={() => setSortBy(option.value)}
-                        className="w-4 h-4 accent-accent"
-                      />
-                      <span className="text-sm">{option.label}</span>
-                    </label>
-                  ))}
+                    {sortOptions.map((option) => (
+                      <option key={option.value} value={option.value} className="bg-gray-900">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -284,85 +293,82 @@ export default function ProductsPage() {
 
           {/* Products Grid */}
           <div className="flex-1">
-            <div className="mb-6 flex items-center justify-between">
-              <h1 className="text-2xl font-bold">All Products</h1>
-              <div className="text-gray-400">
-                {filteredProducts.length} products
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-black mb-1">Our Products</h1>
+                <p className="text-sm text-gray-500">Showing {filteredProducts.length} results</p>
               </div>
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-gray-400 mb-4">No products found</p>
+              <div className="text-center py-20 bg-white/5 border border-white/10 rounded-3xl">
+                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-10 h-10 text-gray-600" />
+                </div>
+                <p className="text-gray-400 mb-6 font-medium">No products found for your criteria</p>
                 {hasActiveFilters && (
                   <button
                     onClick={clearFilters}
                     className="btn-secondary"
                   >
-                    Clear Filters
+                    Clear All Filters
                   </button>
                 )}
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredProducts.slice(0, displayCount).map((product) => (
-                    <div key={product.id} className="card group">
-                      <Link href={`/product/${product.id}`} className="block">
-                        <div className="aspect-square bg-gray-800 flex items-center justify-center text-gray-600 relative overflow-hidden">
-                          <ShoppingCart className="w-16 h-16" />
-                          <div className="absolute top-2 right-2 bg-accent text-white text-xs px-2 py-1 rounded">
-                            {product.category}
+                    <div key={product.id} className="group flex flex-col">
+                      <div className="relative aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl border border-white/5 overflow-hidden group-hover:border-accent/30 transition-all duration-500 mb-4">
+                        <Link href={`/product/${product.id}`} className="absolute inset-0 flex items-center justify-center p-12 opacity-30 group-hover:scale-110 transition-transform duration-700">
+                          <ShoppingCart className="w-full h-full text-gray-700" />
+                        </Link>
+                        <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[10px] font-black uppercase tracking-wider text-accent">
+                          {product.category}
+                        </div>
+                        {product.stock <= 5 && product.stock > 0 && (
+                          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-error text-white text-[10px] font-black uppercase tracking-wider animate-pulse">
+                            Low Stock
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 bg-gradient-to-t from-background to-transparent">
+                          <button
+                            onClick={() => handleAddToCart(product)}
+                            disabled={product.stock === 0}
+                            className="w-full btn-primary py-3 flex items-center justify-center gap-2"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            {product.stock > 0 ? 'QUICK ADD' : 'OUT OF STOCK'}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <Link href={`/product/${product.id}`} className="flex-1 flex flex-col">
+                        <h3 className="font-bold text-lg mb-2 group-hover:text-accent transition-colors line-clamp-2 leading-tight">
+                          {product.name}
+                        </h3>
+                        <div className="flex items-center justify-between mt-auto">
+                          <div className="font-mono text-2xl font-black text-white">
+                            {formatPrice(product.price)}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+                            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                            <span className="font-black">{product.rating}</span>
                           </div>
                         </div>
                       </Link>
-                      <div className="p-4">
-                        <Link href={`/product/${product.id}`}>
-                          <h3 className="font-medium mb-2 group-hover:text-accent transition-colors line-clamp-2">
-                            {product.name}
-                          </h3>
-                        </Link>
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-mono text-lg font-bold">
-                            {formatPrice(product.price)}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            {product.rating}
-                          </div>
-                        </div>
-                        <div
-                          className={`text-sm mb-3 ${
-                            product.stock > 0 ? 'text-success' : 'text-error'
-                          }`}
-                        >
-                          {product.stock > 0
-                            ? `${product.stock} in stock`
-                            : 'Out of stock'}
-                        </div>
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          disabled={product.stock === 0}
-                          className={`w-full py-2 rounded-lg font-medium transition-all ${
-                            product.stock > 0
-                              ? 'bg-accent hover:bg-accent-hover text-white'
-                              : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                          }`}
-                        >
-                          {product.stock > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
-                        </button>
-                      </div>
                     </div>
                   ))}
                 </div>
 
                 {filteredProducts.length > displayCount && (
-                  <div className="text-center mt-8">
+                  <div className="text-center mt-16">
                     <button
                       onClick={() => setDisplayCount((prev) => prev + 12)}
-                      className="btn-secondary"
+                      className="btn-secondary px-12"
                     >
-                      Load More
+                      Load More Products
                     </button>
                   </div>
                 )}
@@ -374,9 +380,11 @@ export default function ProductsPage() {
 
       {/* Toast Notification */}
       {showToast && (
-        <div className="toast bg-success text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
-          <span className="text-xl font-bold">✓</span>
-          <span className="font-medium">Added to cart</span>
+        <div className="fixed bottom-8 right-8 bg-accent text-background px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-slide-up z-50">
+          <div className="w-6 h-6 bg-background rounded-full flex items-center justify-center">
+            <Check className="w-4 h-4 text-accent" />
+          </div>
+          <span className="font-black text-sm tracking-tight">ADDED TO YOUR CART</span>
         </div>
       )}
     </div>
