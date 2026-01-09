@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  category       String
+  price          Int
+  description    String
+  imageUrl       String
+  specifications String
+  warranty       String
+  stock          Int
+  rating         Float
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orderItems OrderItem[]
+  reviews     Review[]
+}
+
+model Order {
+  id                     String   @id @default(cuid())
+  orderId                String   @unique
+  customerName           String
+  customerPhone          String
+  customerEmail          String?
+  deliveryAddress        String
+  alternatePhone         String?
+  deliveryInstructions   String?
+  totalAmount            Int
+  paymentMethod          String   @default("COD")
+  paymentStatus          String   @default("Pending")
+  orderStatus            String   @default("Pending")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  items   OrderItem[]
+  refunds Refund[]
+}
+
+model OrderItem {
+  id           String @id @default(cuid())
+  orderId      String
+  productId    String
+  productName  String
+  productPrice Int
+  quantity     Int
+  subtotal     Int
+  createdAt    DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String
+  productId String
+  quantity  Int
+  createdAt DateTime @default(now())
+}
+
+model Refund {
+  id        String   @id @default(cuid())
+  orderId   String
+  amount    Int
+  reason    String?
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
+  processedAt DateTime?
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  productId    String
+  customerName String
+  city         String
+  rating       Int
+  comment      String
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+}
