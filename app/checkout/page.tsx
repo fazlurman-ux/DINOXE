@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ShoppingCart, Check, ArrowRight, AlertCircle } from 'lucide-react'
+import { ShoppingCart, Check, ArrowRight, AlertCircle, ShieldCheck, Truck } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
-import { formatPrice, validatePhone, validateEmail, validatePincode, validateName, validateAddress } from '@/lib/utils'
+import { formatPrice, validatePhone, validateEmail, validateName, validateAddress } from '@/lib/utils'
 
 interface FormData {
   fullName: string
@@ -22,7 +22,7 @@ interface FormErrors {
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { cartItems, getCartTotal, clearCart } = useCart()
+  const { cartItems, getCartTotal, clearCart, getCartCount } = useCart()
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     phoneNumber: '',
@@ -53,9 +53,12 @@ export default function CheckoutPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    // Clear error for this field when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
     }
   }
 
@@ -63,35 +66,35 @@ export default function CheckoutPage() {
     const newErrors: FormErrors = {}
 
     if (!validateName(formData.fullName)) {
-      newErrors.fullName = 'Name must be 3-100 characters, letters only'
+      newErrors.fullName = 'Please enter a valid name (3-100 letters)'
     }
 
     if (!validatePhone(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Phone must be 10 digits starting with 6-9'
+      newErrors.phoneNumber = 'Enter a valid 10-digit phone number starting with 6-9'
     }
 
     if (formData.alternatePhone && !validatePhone(formData.alternatePhone)) {
-      newErrors.alternatePhone = 'Phone must be 10 digits starting with 6-9'
+      newErrors.alternatePhone = 'Enter a valid 10-digit phone number'
     }
 
     if (formData.email && !validateEmail(formData.email)) {
-      newErrors.email = 'Invalid email format'
+      newErrors.email = 'Enter a valid email address'
     }
 
     if (!validateAddress(formData.deliveryAddress)) {
-      newErrors.deliveryAddress = 'Address must be 20+ characters with a 6-digit pincode'
+      newErrors.deliveryAddress = 'Address must be 20+ characters and include a 6-digit pincode'
     }
 
     if (!checkboxes.addressConfirmed) {
-      newErrors.addressConfirmed = 'Please confirm your delivery address'
+      newErrors.addressConfirmed = 'Please confirm your address'
     }
 
     if (!checkboxes.codConfirmed) {
-      newErrors.codConfirmed = 'Please confirm COD payment'
+      newErrors.codConfirmed = 'Please confirm Cash on Delivery'
     }
 
     if (!checkboxes.termsAgreed) {
-      newErrors.termsAgreed = 'Please agree to the terms'
+      newErrors.termsAgreed = 'Please agree to our terms'
     }
 
     setErrors(newErrors)
@@ -110,7 +113,7 @@ export default function CheckoutPage() {
     setLoading(true)
 
     try {
-      // Check for duplicate orders (60-second cooldown)
+      // Cooldown check
       const cooldownCheck = await fetch('/api/orders/check-cooldown', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,36 +140,31 @@ export default function CheckoutPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.message || 'Failed to create order')
+        throw new Error(error.message || 'Failed to place order')
       }
 
       const order = await response.json()
       clearCart()
       router.push(`/confirmation?orderId=${order.orderId}`)
     } catch (error: any) {
-      setErrors({ submit: error.message || 'Failed to place order. Please try again.' })
+      setErrors({ submit: error.message || 'An error occurred. Please try again.' })
     } finally {
       setLoading(false)
     }
   }
 
-  if (cartItems.length === 0) {
-    return null
-  }
+  if (cartItems.length === 0) return null
 
   return (
-    <div className="min-h-screen bg-mesh-gradient pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-black tracking-tighter text-accent flex items-center gap-2">
-              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                <div className="w-4 h-4 bg-background rounded-sm"></div>
-              </div>
+            <Link href="/" className="text-2xl font-bold tracking-tight text-primary">
               DINOXE
             </Link>
-            <Link href="/cart" className="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-accent transition-colors">
+            <Link href="/cart" className="text-sm font-bold text-gray-500 hover:text-primary transition-colors uppercase tracking-wider">
               Back to Bag
             </Link>
           </div>
@@ -174,14 +172,14 @@ export default function CheckoutPage() {
       </header>
 
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-black tracking-tight mb-12">Checkout</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-12 text-center md:text-left">Checkout</h1>
 
         {cooldownError && (
-          <div className="mb-8 bg-warning/10 border border-warning/20 rounded-[24px] p-6 flex items-start gap-4 animate-slide-up">
-            <AlertCircle className="w-6 h-6 text-warning shrink-0" />
+          <div className="mb-8 bg-yellow-50 border border-yellow-100 rounded-xl p-6 flex items-start gap-4 animate-slide-up">
+            <AlertCircle className="w-6 h-6 text-yellow-600 shrink-0" />
             <div>
-              <div className="font-black text-warning uppercase text-xs tracking-widest mb-1">Wait a moment</div>
-              <div className="text-sm text-gray-300">{cooldownError}</div>
+              <p className="font-bold text-yellow-900">Wait a moment</p>
+              <p className="text-sm text-yellow-700">{cooldownError}</p>
             </div>
           </div>
         )}
@@ -189,155 +187,130 @@ export default function CheckoutPage() {
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-12">
           {/* Checkout Form */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 md:p-10">
-              <h2 className="text-xl font-black mb-8 uppercase tracking-widest text-white/50">1. Delivery Information</h2>
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-8 border-b border-gray-50 pb-4">1. Delivery Information</h2>
               
               <div className="grid gap-6">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
-                    Full Name <span className="text-accent">*</span>
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Full Name *</label>
                   <input
                     type="text"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    placeholder="Enter your full name"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+                    placeholder="e.g. Rahul Sharma"
+                    className="input-field"
                   />
-                  {errors.fullName && (
-                    <p className="text-error text-[10px] font-bold mt-2 ml-1 uppercase tracking-widest">{errors.fullName}</p>
-                  )}
+                  {errors.fullName && <p className="text-error text-xs mt-1">{errors.fullName}</p>}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
-                      Phone Number <span className="text-accent">*</span>
-                    </label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Phone Number *</label>
                     <div className="relative">
-                      <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">+91</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">+91</span>
                       <input
                         type="tel"
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleInputChange}
                         placeholder="10-digit mobile"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-16 pr-6 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all font-mono"
+                        className="input-field pl-14"
                       />
                     </div>
-                    {errors.phoneNumber && (
-                      <p className="text-error text-[10px] font-bold mt-2 ml-1 uppercase tracking-widest">{errors.phoneNumber}</p>
-                    )}
+                    {errors.phoneNumber && <p className="text-error text-xs mt-1">{errors.phoneNumber}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
-                      Alternate Phone
-                    </label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Alternate Phone</label>
                     <input
                       type="tel"
                       name="alternatePhone"
                       value={formData.alternatePhone}
                       onChange={handleInputChange}
                       placeholder="Optional number"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all font-mono"
+                      className="input-field"
                     />
-                    {errors.alternatePhone && (
-                      <p className="text-error text-[10px] font-bold mt-2 ml-1 uppercase tracking-widest">{errors.alternatePhone}</p>
-                    )}
+                    {errors.alternatePhone && <p className="text-error text-xs mt-1">{errors.alternatePhone}</p>}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
-                    Email Address
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="your@email.com"
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+                    placeholder="your@email.com (optional)"
+                    className="input-field"
                   />
-                  {errors.email && (
-                    <p className="text-error text-[10px] font-bold mt-2 ml-1 uppercase tracking-widest">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
-                    Complete Address <span className="text-accent">*</span>
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Complete Address *</label>
                   <textarea
                     name="deliveryAddress"
                     value={formData.deliveryAddress}
                     onChange={handleInputChange}
                     placeholder="House No, Street, Landmark, City, State - PINCODE"
                     rows={4}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all resize-none"
+                    className="input-field resize-none"
                   />
-                  {errors.deliveryAddress && (
-                    <p className="text-error text-[10px] font-bold mt-2 ml-1 uppercase tracking-widest">{errors.deliveryAddress}</p>
-                  )}
+                  {errors.deliveryAddress && <p className="text-error text-xs mt-1">{errors.deliveryAddress}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">
-                    Special Instructions
-                  </label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Delivery Instructions</label>
                   <textarea
                     name="deliveryInstructions"
                     value={formData.deliveryInstructions}
                     onChange={handleInputChange}
                     placeholder="Any specific directions for the courier?"
                     rows={2}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all resize-none"
+                    className="input-field resize-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Payment Method */}
-            <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 md:p-10">
-              <h2 className="text-xl font-black mb-8 uppercase tracking-widest text-white/50">2. Payment Method</h2>
-              <div className="bg-accent/5 border border-accent/20 rounded-[24px] p-6 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl"></div>
-                <div className="flex items-center gap-6">
-                  <div className="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center shrink-0">
-                    <Check className="w-6 h-6 text-background" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-black text-white uppercase tracking-widest text-xs mb-1">Cash on Delivery (COD)</div>
-                    <div className="text-sm text-gray-400">
-                      Pay {formatPrice(total)} in cash when your order arrives.
-                    </div>
-                  </div>
-                  <div className="hidden sm:block text-[10px] font-black uppercase tracking-widest text-accent bg-accent/10 px-3 py-1 rounded-full border border-accent/20">
-                    Pre-Selected
-                  </div>
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-8 border-b border-gray-50 pb-4">2. Payment Method</h2>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-center gap-6">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shrink-0 shadow-lg">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">Cash on Delivery (COD)</p>
+                  <p className="text-sm text-gray-600">
+                    Pay {formatPrice(total)} in cash when your order reaches your doorstep.
+                  </p>
+                </div>
+                <div className="ml-auto hidden sm:block">
+                  <span className="bg-white border border-blue-200 text-primary text-[10px] font-bold uppercase px-3 py-1 rounded-full">Pre-Selected</span>
                 </div>
               </div>
             </div>
 
             {/* Confirmations */}
-            <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 md:p-10 space-y-6">
-              <h2 className="text-xl font-black mb-8 uppercase tracking-widest text-white/50">3. Final Confirmation</h2>
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm space-y-4">
+              <h2 className="text-xl font-bold text-gray-900 mb-8 border-b border-gray-50 pb-4">3. Confirm Your Order</h2>
               
               <label className="flex items-start gap-4 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={checkboxes.addressConfirmed}
                   onChange={(e) => setCheckboxes({ ...checkboxes, addressConfirmed: e.target.checked })}
-                  className="w-5 h-5 accent-accent mt-0.5 bg-transparent border-white/20 rounded-md"
+                  className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary mt-1"
                 />
-                <span className="text-sm text-gray-400 group-hover:text-white transition-colors">
-                  I confirm the delivery address is 100% accurate.
+                <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                  I confirm that the delivery address provided is 100% correct.
                 </span>
               </label>
               {submitAttempted && errors.addressConfirmed && (
-                <p className="text-error text-[10px] font-bold -mt-4 ml-9 uppercase tracking-widest">{errors.addressConfirmed}</p>
+                <p className="text-error text-xs ml-9">{errors.addressConfirmed}</p>
               )}
 
               <label className="flex items-start gap-4 cursor-pointer group">
@@ -345,14 +318,14 @@ export default function CheckoutPage() {
                   type="checkbox"
                   checked={checkboxes.codConfirmed}
                   onChange={(e) => setCheckboxes({ ...checkboxes, codConfirmed: e.target.checked })}
-                  className="w-5 h-5 accent-accent mt-0.5 bg-transparent border-white/20 rounded-md"
+                  className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary mt-1"
                 />
-                <span className="text-sm text-gray-400 group-hover:text-white transition-colors">
-                  I will pay {formatPrice(total)} upon delivery.
+                <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                  I agree to pay the total amount of {formatPrice(total)} upon delivery.
                 </span>
               </label>
               {submitAttempted && errors.codConfirmed && (
-                <p className="text-error text-[10px] font-bold -mt-4 ml-9 uppercase tracking-widest">{errors.codConfirmed}</p>
+                <p className="text-error text-xs ml-9">{errors.codConfirmed}</p>
               )}
 
               <label className="flex items-start gap-4 cursor-pointer group">
@@ -360,41 +333,40 @@ export default function CheckoutPage() {
                   type="checkbox"
                   checked={checkboxes.termsAgreed}
                   onChange={(e) => setCheckboxes({ ...checkboxes, termsAgreed: e.target.checked })}
-                  className="w-5 h-5 accent-accent mt-0.5 bg-transparent border-white/20 rounded-md"
+                  className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary mt-1"
                 />
-                <span className="text-sm text-gray-400 group-hover:text-white transition-colors">
-                  I agree to the <Link href="#" className="text-accent hover:underline">Terms</Link> & <Link href="#" className="text-accent hover:underline">Refund Policy</Link>.
+                <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                  I have read and agree to the <Link href="#" className="text-primary hover:underline">Terms & Conditions</Link>.
                 </span>
               </label>
               {submitAttempted && errors.termsAgreed && (
-                <p className="text-error text-[10px] font-bold -mt-4 ml-9 uppercase tracking-widest">{errors.termsAgreed}</p>
+                <p className="text-error text-xs ml-9">{errors.termsAgreed}</p>
               )}
             </div>
 
             {errors.submit && (
-              <div className="bg-error/10 border border-error/20 rounded-[24px] p-6 text-error text-xs font-bold uppercase tracking-widest animate-pulse">
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-error text-sm font-bold text-center">
                 {errors.submit}
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-6">
-              <Link href="/cart" className="btn-secondary flex-1 py-5 text-center text-xs font-black uppercase tracking-widest">
-                ← Back to Bag
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="/cart" className="btn-secondary flex-1 py-4 text-center">
+                Back to Cart
               </Link>
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary flex-[2] py-5 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg shadow-[0_0_30px_rgba(0,217,217,0.2)]"
+                className="btn-primary flex-[2] py-4 flex items-center justify-center gap-2 text-lg"
               >
                 {loading ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-background"></div>
-                    PROCESSING...
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    Placing Order...
                   </>
                 ) : (
                   <>
-                    CONFIRM ORDER
-                    <ArrowRight className="w-5 h-5" />
+                    Confirm Order <ArrowRight className="w-5 h-5" />
                   </>
                 )}
               </button>
@@ -403,49 +375,53 @@ export default function CheckoutPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 md:p-10 sticky top-24 overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl group-hover:bg-accent/10 transition-colors"></div>
-              <h2 className="text-xl font-black mb-8 uppercase tracking-widest text-white/50">Order Summary</h2>
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm sticky top-24">
+              <h2 className="text-xl font-bold text-gray-900 mb-8 border-b border-gray-50 pb-4">Summary</h2>
               
-              <div className="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {cartItems.map((item) => (
-                  <div key={item.productId} className="flex gap-4 group/item">
-                    <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 border border-white/5 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
-                      <ShoppingCart className="w-8 h-8 text-gray-700 opacity-30 group-hover/item:scale-110 transition-transform" />
+                  <div key={item.productId} className="flex gap-4">
+                    <div className="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden shrink-0">
+                      <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-sm text-white line-clamp-1 group-hover/item:text-accent transition-colors">{item.productName}</div>
-                      <div className="text-xs text-gray-500 font-bold mb-1">QTY: {item.quantity}</div>
-                      <div className="font-mono text-sm font-black text-white">{formatPrice(item.productPrice * item.quantity)}</div>
+                      <p className="text-sm font-bold text-gray-900 line-clamp-1">{item.productName}</p>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      <p className="text-sm font-mono font-bold text-gray-900">{formatPrice(item.productPrice * item.quantity)}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-white/10 pt-8 space-y-4">
-                <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="font-mono text-white text-base">{formatPrice(subtotal)}</span>
+              <div className="border-t border-gray-100 pt-6 space-y-4">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Subtotal</span>
+                  <span className="font-mono font-bold text-gray-900">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                  <span className="text-gray-500">Shipping</span>
-                  <span className="text-success">FREE</span>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Shipping</span>
+                  <span className="text-accent font-bold">FREE</span>
                 </div>
-                <div className="border-t border-white/10 pt-6">
+                <div className="border-t border-gray-100 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-white font-black text-lg uppercase tracking-widest">Total</span>
-                    <span className="font-mono text-2xl font-black text-accent">{formatPrice(total)}</span>
+                    <span className="text-lg font-bold text-gray-900">Total</span>
+                    <span className="font-mono text-2xl font-bold text-primary">{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-10 p-6 bg-accent/5 border border-accent/20 rounded-[24px]">
-                <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-2 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent animate-ping"></div>
-                  COD Guarantee
+              <div className="mt-8 p-4 bg-gray-50 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                  <ShieldCheck className="w-4 h-4 text-accent" />
+                  Trust Badges
                 </div>
-                <div className="text-xs text-gray-400 leading-relaxed">
-                  Pay <span className="text-white font-bold">{formatPrice(total)}</span> when the courier reaches your doorstep.
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <Truck className="w-4 h-4 text-primary" />
+                  Fast delivery across India
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <Check className="w-4 h-4 text-accent" />
+                  Authentic products only
                 </div>
               </div>
             </div>

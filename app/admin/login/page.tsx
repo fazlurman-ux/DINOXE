@@ -40,27 +40,30 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="w-full max-w-md p-8">
-        <Link href="/" className="text-2xl font-bold text-accent block text-center mb-8">
-          DINOXE Admin
-        </Link>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md p-4">
+        <div className="text-center mb-8">
+          <Link href="/" className="text-3xl font-bold tracking-tight text-primary">
+            DINOXE
+          </Link>
+          <p className="text-gray-500 mt-2 font-medium uppercase tracking-widest text-[10px]">Admin Portal</p>
+        </div>
 
-        <div className="card p-8">
-          <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-xl shadow-gray-200/50">
+          <h1 className="text-2xl font-bold mb-8 text-gray-900 text-center">Sign In</h1>
 
           {error && (
-            <div className="mb-6 bg-error/20 border border-error rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
-              <div className="text-error text-sm">{error}</div>
+            <div className="mb-6 bg-red-50 border border-red-100 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div className="text-red-700 text-sm font-medium">{error}</div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                 <input
                   type="email"
                   value={email}
@@ -73,9 +76,9 @@ export default function AdminLoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+              <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                 <input
                   type="password"
                   value={password}
@@ -90,18 +93,27 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-blue w-full py-4 shadow-lg shadow-primary/20"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  Authenticating...
+                </div>
+              ) : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-400">
-            <Link href="/" className="text-accent hover:underline">
-              ← Back to Store
+          <div className="mt-8 text-center">
+            <Link href="/" className="text-sm font-bold text-gray-400 hover:text-primary transition-colors uppercase tracking-wider">
+              ← Return to Store
             </Link>
           </div>
         </div>
+        
+        <p className="text-center text-xs text-gray-400 mt-8">
+          Authorized personnel only. All access is logged.
+        </p>
       </div>
     </div>
   )
