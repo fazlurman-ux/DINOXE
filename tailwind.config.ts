@@ -9,11 +9,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: '#0F0F0F',
-        accent: '#00D9D9',
-        'accent-hover': '#00B8B8',
-        text: '#F5F5F5',
-        border: '#333333',
+        background: '#FFFFFF',
+        primary: '#2563EB',
+        'primary-hover': '#1D4ED8',
+        accent: '#10B981',
+        'accent-hover': '#059669',
+        text: '#1F2937',
+        'text-muted': '#6B7280',
+        border: '#E5E7EB',
         success: '#10B981',
         error: '#EF4444',
         warning: '#F59E0B',
@@ -41,10 +44,10 @@ const config: Config = {
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'mesh-gradient': 'radial-gradient(at 0% 0%, rgba(0, 217, 217, 0.15) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(0, 217, 217, 0.1) 0, transparent 50%), radial-gradient(at 100% 0%, rgba(0, 217, 217, 0.15) 0, transparent 50%)',
       },
-      transform: {
-        'scale-102': 'scale(1.02)',
+      boxShadow: {
+        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       },
     },
   },

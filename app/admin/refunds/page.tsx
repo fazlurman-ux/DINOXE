@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Package, Check, LogOut, Menu, X } from 'lucide-react'
+import { ShoppingBag, Package, TrendingUp, LogOut, Menu, X, Check, Clock } from 'lucide-react'
 import { formatPrice, formatDate } from '@/lib/utils'
 
 interface Refund {
@@ -16,6 +16,7 @@ interface Refund {
   processedAt?: string
   order?: {
     customerName: string
+    orderId: string
   }
 }
 
@@ -52,6 +53,8 @@ export default function AdminRefundsPage() {
   }
 
   const handleProcessRefund = async (refundId: string) => {
+    if (!confirm('Are you sure you want to mark this refund as processed?')) return
+
     try {
       const response = await fetch(`/api/admin/refunds/${refundId}`, {
         method: 'PATCH',
@@ -74,149 +77,136 @@ export default function AdminRefundsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 border-r border-gray-800 transition-transform duration-300 md:translate-x-0 md:static`}
+        } fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 md:translate-x-0 md:static`}
       >
-        <div className="p-6">
-          <Link href="/" className="text-2xl font-bold text-accent block">
-            DINOXE Admin
+        <div className="p-6 border-b border-gray-50">
+          <Link href="/" className="text-2xl font-bold tracking-tight text-primary">
+            DINOXE
           </Link>
+          <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Admin Panel</p>
         </div>
-        <nav className="px-4 py-4">
+        <nav className="p-4 space-y-1">
           <Link
             href="/admin/dashboard"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors text-gray-400 hover:text-white"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-all"
           >
-            <Package className="w-5 h-5" />
+            <ShoppingBag className="w-5 h-5" />
             Orders
           </Link>
           <Link
             href="/admin/products"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors text-gray-400 hover:text-white"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-all"
           >
             <Package className="w-5 h-5" />
             Products
           </Link>
           <Link
             href="/admin/refunds"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors bg-accent/10 text-accent"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary font-bold transition-all"
           >
-            <Check className="w-5 h-5" />
+            <TrendingUp className="w-5 h-5" />
             Refunds
           </Link>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-error/10 transition-colors mt-4"
-          >
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
+          <div className="pt-8 mt-8 border-t border-gray-50">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 font-medium transition-all"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign Out
+            </button>
+          </div>
         </nav>
       </aside>
 
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* Main Content */}
-      <main className="flex-1 min-w-0">
-        {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+      <main className="flex-1 flex flex-col min-w-0">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
           <div className="px-6 py-4 flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden text-text"
+              className="md:hidden p-2 text-gray-600"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <h1 className="text-xl font-bold">Refunds</h1>
-            <Link href="/" className="text-sm text-gray-400 hover:text-accent">
-              View Store
-            </Link>
+            <h1 className="text-xl font-bold text-gray-900">Refunds Log</h1>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">A</div>
           </div>
         </header>
 
-        <div className="p-6">
-          {/* Refunds Table */}
-          <div className="card">
-            <div className="p-6 border-b border-gray-800">
-              <h2 className="text-xl font-bold">Refund Requests</h2>
+        <div className="p-6 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 border-b border-gray-50">
+              <h2 className="text-lg font-bold text-gray-900">All Refund Requests</h2>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-800">
+                <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Refund ID</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Order ID</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Customer</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Amount</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Reason</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Status</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Date</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium">Actions</th>
+                    <th className="px-6 py-4 text-left">Order ID</th>
+                    <th className="px-6 py-4 text-left">Customer</th>
+                    <th className="px-6 py-4 text-left">Amount</th>
+                    <th className="px-6 py-4 text-left">Status</th>
+                    <th className="px-6 py-4 text-left">Date</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
-                  {refunds.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
-                        No refund requests found
+                <tbody className="divide-y divide-gray-50">
+                  {refunds.map((refund) => (
+                    <tr key={refund.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-mono font-bold text-gray-900">
+                        {refund.order?.orderId || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-gray-900">{refund.order?.customerName || 'Unknown'}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-gray-900 font-mono">
+                        {formatPrice(refund.amount)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 w-fit ${
+                          refund.status === 'Processed'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {refund.status === 'Processed' ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                          {refund.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {formatDate(new Date(refund.createdAt))}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {refund.status === 'Pending' ? (
+                          <button
+                            onClick={() => handleProcessRefund(refund.id)}
+                            className="btn-blue py-1 px-4 text-xs font-bold"
+                          >
+                            Complete Refund
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400 font-medium">Processed on {refund.processedAt ? formatDate(new Date(refund.processedAt)) : '-'}</span>
+                        )}
                       </td>
                     </tr>
-                  ) : (
-                    refunds.map((refund) => (
-                      <tr key={refund.id} className="hover:bg-gray-800/50 transition-colors">
-                        <td className="px-6 py-4 font-mono text-sm">{refund.id.slice(0, 8)}...</td>
-                        <td className="px-6 py-4 font-mono text-sm">{refund.orderId}</td>
-                        <td className="px-6 py-4">{refund.order?.customerName || 'N/A'}</td>
-                        <td className="px-6 py-4 font-mono font-medium">{formatPrice(refund.amount)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-400">{refund.reason || 'N/A'}</td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              refund.status === 'Processed'
-                                ? 'bg-success/20 text-success'
-                                : 'bg-warning/20 text-warning'
-                            }`}
-                          >
-                            {refund.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm">{formatDate(new Date(refund.createdAt))}</td>
-                        <td className="px-6 py-4">
-                          {refund.status === 'Pending' && (
-                            <button
-                              onClick={() => handleProcessRefund(refund.id)}
-                              className="btn-primary text-sm px-3 py-1 flex items-center gap-1"
-                            >
-                              <Check className="w-4 h-4" />
-                              Process
-                            </button>
-                          )}
-                          {refund.status === 'Processed' && (
-                            <span className="text-sm text-gray-400">
-                              {refund.processedAt ? formatDate(new Date(refund.processedAt)) : '-'}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                  ))}
+                  {refunds.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">No refund requests found.</td>
+                    </tr>
                   )}
                 </tbody>
               </table>
