@@ -26,7 +26,7 @@ A complete e-commerce store for smart accessories with Cash on Delivery (COD) pa
 - **Validation**: Zod schema validation
 - **Icons**: Lucide React
 
-## Setup Instructions
+## Quick Start
 
 ### 1. Install Dependencies
 
@@ -59,6 +59,22 @@ The application will be available at `http://localhost:3000`
 - Email: `admin@dinoxe.com`
 - Password: `admin123`
 
+## Deployment
+
+### Vercel Deployment
+
+This project is configured for Vercel deployment. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+#### Quick Deploy Steps:
+
+1. Push your code to GitHub
+2. Import repository in Vercel
+3. Set environment variable: `DATABASE_URL=file:./dev.db`
+4. Deploy
+5. Visit `/api/seed` to seed the database (after deployment)
+
+**Important**: SQLite on Vercel is ephemeral - data resets on each deployment. For production, migrate to Vercel Postgres, PlanetScale, or another cloud database.
+
 ## Pages
 
 ### Customer Pages
@@ -75,6 +91,23 @@ The application will be available at `http://localhost:3000`
 9. **/admin/dashboard** - Orders management with status updates
 10. **/admin/products** - Product management (add, edit, delete, toggle active)
 11. **/admin/refunds** - Refund request management
+
+### API Routes
+- **/api/products** - Fetch all products (with optional category/search filters)
+- **/api/products/[id]** - Fetch single product details
+- **/api/products/[id]/reviews** - Fetch product reviews
+- **/api/orders** - Create new order
+- **/api/orders/[orderId]** - Fetch order details
+- **/api/orders/check-cooldown** - Check phone number order cooldown
+- **/api/admin/login** - Admin authentication
+- **/api/admin/orders** - Fetch all orders (admin)
+- **/api/admin/orders/[id]** - Update order status (admin)
+- **/api/admin/products** - Fetch/Create products (admin)
+- **/api/admin/products/[id]** - Update/Delete product (admin)
+- **/api/admin/refunds** - Fetch all refunds (admin)
+- **/api/admin/refunds/[id]** - Process refund (admin)
+- **/api/admin/stats** - Fetch dashboard stats (admin)
+- **/api/seed** - Seed database with products and admin user
 
 ## Database Schema
 
@@ -175,7 +208,44 @@ Default admin user:
 - Email: admin@dinoxe.com
 - Password: admin123
 
-To change credentials, update `prisma/seed.ts` and run the seed script again.
+To change credentials, update `prisma/seed.ts` or `app/api/seed/route.ts` and run the seed script again.
+
+## Known Limitations
+
+1. **SQLite on Vercel**: The database file is ephemeral and data will reset on each deployment. For production, migrate to a cloud database (Vercel Postgres, PlanetScale, Supabase, etc.)
+2. **No Online Payments**: Currently only supports Cash on Delivery (COD)
+3. **Static Build Warnings**: Some API routes use searchParams which triggers build warnings but works correctly at runtime
+
+## Troubleshooting
+
+### Build Issues
+
+If you encounter build errors:
+
+```bash
+# Clean build artifacts
+rm -rf .next node_modules
+npm install
+npm run build
+```
+
+### Database Issues
+
+```bash
+# Regenerate Prisma client
+npx prisma generate
+
+# Push schema changes
+npx prisma db push
+
+# Re-seed database
+npm run seed
+# Or visit /api/seed after deployment
+```
+
+### TypeScript Errors
+
+Ensure all icon imports from lucide-react are correct. Missing icons will cause TypeScript errors during build.
 
 ## License
 

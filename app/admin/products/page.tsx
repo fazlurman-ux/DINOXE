@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Package, Plus, Pencil, Trash2, Search, Filter, LogOut, Menu, X, ChevronRight } from 'lucide-react'
+import { Package, Plus, Pencil, Trash2, Search, Filter, LogOut, Menu, X, ChevronRight, ShoppingBag, TrendingUp } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 
 interface Product {

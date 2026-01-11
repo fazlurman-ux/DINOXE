@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ShoppingCart, Star, ArrowLeft, Shield, RefreshCw, Zap, Check, ChevronRight } from 'lucide-react'
+import { ShoppingCart, Star, ArrowLeft, Shield, RefreshCw, Zap, Check, ChevronRight, Truck } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { formatPrice, validateName } from '@/lib/utils'
 
